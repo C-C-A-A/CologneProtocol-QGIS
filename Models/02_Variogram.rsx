@@ -1,3 +1,7 @@
+# Step 7: Semivariogram
+
+# Initalzing input parameters
+
 ##Cologne-Protocol=group
 ##showplots
 ##Layer=vector LEC
@@ -16,38 +20,43 @@
 options(scipen=999)
 library(gstat)
 
+
+# Build Sample variogram
 lzn.vgm <- gstat::variogram((Layer[[Feld]])~1, Layer,width=LagDist)
 
+
+# Identify first plateau for fitting theoretical variogram 
 d1 <-diff(lzn.vgm$gamma)
 which.max((d1 / d1[1]) < 0.1)  
 range.plateau <- lzn.vgm$dist[which.max((d1 / d1[1]) < 0.1)]
 sill.plateau <- lzn.vgm$gamma[lzn.vgm$dist == range.plateau]
 
-# Fit Model
+
+# Fitting theoretical variogram
 Models<-c("Exp","Sph","Gau","Mat")
-model2<-Models[model+1]
-
-
-  
+model2<-Models[model+1] 
 lzn.fit <- fit.variogram(lzn.vgm, model=vgm(sill.plateau,model2, range.plateau, nugget=0), fit.sills = FALSE, fit.ranges = FALSE)
 
 
+# Defining outputs: nugget, range, psill
 out.nugget <- round(lzn.fit$psill[1])
 out.range <- round(lzn.fit$range[2])
 out.psill <- round(lzn.fit$psill[2])
 
+
+# Defining outputs: formulas/models
 exp <- paste(out.nugget, "+",out.psill,"*x+",out.range,"*x*x",sep="")
 pwr <- paste(out.nugget, "+",out.psill,"*x^",out.range,sep="")
 sph <- paste(out.nugget, "+", out.psill, "* ifelse(x >",out.range,", 1, 1.5 * x / ",out.range," - 0.5 * x*x*x / ",out.range,"*",out.range,"*",out.range,sep="")
 
-# Plot Sample Variogramm and fitted Modell
+
+# Plot Sample Variogramm and fitted Model using basic plotting:
 xlim.value = ((max(lzn.vgm$dist)/100)*Plot.Show.First.X.Percent)
 ylim.value = ((max(lzn.vgm$gamma)/100)*Plot.Show.First.X.Percent)
 titel <- paste(lzn.fit$model[2]," model, 1. Plateau range = ",as.character(round(range.plateau,0)), ", psill = ", out.psill, sep="")
 plot(lzn.vgm, lzn.fit, main=titel, xlim=c(0, xlim.value), ylim=c(0, ylim.value))
-#abline(v=range.plateau)
-#segments(x0 = out.range, y0 = 0, x1 = out.range, y1 = max(lzn.vgm$gamma), lwd = 2)
 
+# Plot Sample Variogramm and fitted Model using ggplot2:
 if(Use_ggplot2_for_Plotting){ 
 library(ggplot2)
 library(gridExtra)
@@ -63,8 +72,9 @@ p2 <- ggplot(lzn.vgm, aes(x = dist, y = gamma)) + geom_line(data = vgm.line) + g
 grid.arrange(p1,p2,nrow=2)
 }
 
-# Export results
+# Export results as table
 Variogram_Results <- data.frame("Model" = lzn.fit$model[2], "Nugget" = out.nugget, "Range" = round(out.range,0), "Psill" = round(out.psill,0), "exp" = exp, "pwr" = pwr, "sph" = sph)
+
 
 # Print Results
 >print("")
