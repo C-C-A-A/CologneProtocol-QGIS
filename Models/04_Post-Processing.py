@@ -1,3 +1,4 @@
+# Import modules
 from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingMultiStepFeedback
@@ -9,7 +10,8 @@ import processing
 
 
 class _postprocessing(QgsProcessingAlgorithm):
-
+    
+    # Initalize input parameters
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterRasterLayer('krigingraster', 'Kriging_Raster', defaultValue="Kriging_Raster"))
         self.addParameter(QgsProcessingParameterVectorLayer('sites', 'sites', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
@@ -26,7 +28,7 @@ class _postprocessing(QgsProcessingAlgorithm):
         results = {}
         outputs = {}
 
-        # Contour lines
+        # Step 9: Creating contour lines (isolines)
         alg_params = {
             'GRID': parameters['krigingraster'],
             'VERTEX': 1,
@@ -42,7 +44,7 @@ class _postprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Add row number
+        # Add row number to sites
         alg_params = {
             'FIELD_LENGTH': 10,
             'FIELD_NAME': 'ID_MODEL',
@@ -70,7 +72,7 @@ class _postprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Polygon dissolve (by attribute)
+        # Polygon dissolve by attribute Z
         alg_params = {
             'BND_KEEP': True,
             'FIELD_1': 'Z',
@@ -85,7 +87,8 @@ class _postprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Polygon properties
+        ''' Step 10: Calculating the area and the number of sites per isoline 
+                     - area and number of part'''
         alg_params = {
             'BAREA         ': True,
             'BLENGTH       ': False,
@@ -100,7 +103,8 @@ class _postprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Point statistics for polygons
+        ''' Step 10: Calculating the area and the number of sites per isoline 
+                     - number of sites per isoline'''
         alg_params = {
             'AVG             ': False,
             'DEV             ': False,
