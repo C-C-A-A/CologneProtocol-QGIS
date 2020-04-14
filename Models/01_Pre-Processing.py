@@ -1,3 +1,4 @@
+# Import Models
 from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingMultiStepFeedback
@@ -6,7 +7,7 @@ from qgis.core import QgsProcessingParameterFileDestination
 from qgis.core import QgsProcessingParameterFeatureSink
 import processing
 
-
+# Initalize Input Parameters
 class _preprocessing(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
@@ -25,7 +26,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         results = {}
         outputs = {}
 
-        # Delete duplicate sites
+        # Step 1: Delete duplicate sites
         alg_params = {
             'INPUT': parameters['sites'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
@@ -36,7 +37,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Voronoi polygons
+        # Step 2: Creating Voronoi polygons
         alg_params = {
             'BUFFER': 0,
             'INPUT': outputs['DeleteDuplicateSites']['OUTPUT'],
@@ -49,7 +50,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Add sites_clean ID
+        # Add row_number (ID)
         alg_params = {
             'FIELD_LENGTH': 10,
             'FIELD_NAME': 'Vertices_ID',
@@ -67,7 +68,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Extract layer extent
+        # Extract layer extent (Bounding Box)
         alg_params = {
             'INPUT': outputs['VoronoiPolygons']['OUTPUT'],
             'ROUND_TO': 0,
@@ -79,7 +80,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Extract vertices
+        # Step 3: Extraction of vertices
         alg_params = {
             'INPUT': outputs['VoronoiPolygons']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
@@ -90,7 +91,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Delete duplicate geometries
+        # Step 4: Aggregation of vertices
         alg_params = {
             'INPUT': outputs['ExtractVertices']['OUTPUT'],
             'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
@@ -101,7 +102,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Field calculator
+        # Step 5a: Calculate Statistics - Bounding Box Diagonal
         alg_params = {
             'FIELD_LENGTH': 10,
             'FIELD_NAME': 'Diagonal',
@@ -118,7 +119,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Add vertices ID
+        # Add rownumber (ID) to Vertices_Cleaned
         alg_params = {
             'FIELD_LENGTH': 10,
             'FIELD_NAME': 'Vertices_ID',
@@ -136,7 +137,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Field calculator2
+        # # Step 5a: Calculate Statistics - MaxSearchDist
         alg_params = {
             'FIELD_LENGTH': 10,
             'FIELD_NAME': 'MaxSearchDist',
@@ -153,7 +154,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Field calculator3
+       # Step 5a: Calculate Statistics - Lag Distance
         alg_params = {
             'FIELD_LENGTH': 10,
             'FIELD_NAME': 'LagDist',
@@ -170,7 +171,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Distance to nearest hub (points)
+        # Step 5: Defining the radius of the „Largest Empty Circle“
         alg_params = {
             'FIELD': 'Vertices_ID',
             'HUBS': outputs['AddSites_cleanId']['OUTPUT'],
@@ -185,7 +186,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Drop field(s)
+        # Drop field(s) from BoundingGeometry
         alg_params = {
             'COLUMN': ['MINX','MINY','MAXX','MAXY','CNTX','CNTY','AREA','PERIM'],
             'INPUT': outputs['FieldCalculator3']['OUTPUT'],
@@ -198,7 +199,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Basic statistics for fields
+        # Step 5: Calculate Basic Statistics for HubDist (LEC-Radii)
         alg_params = {
             'FIELD_NAME': 'HubDist',
             'INPUT_LAYER': outputs['DistanceToNearestHubPoints']['OUTPUT'],
