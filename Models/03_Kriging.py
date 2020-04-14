@@ -1,3 +1,4 @@
+# Import modules
 from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingMultiStepFeedback
@@ -12,6 +13,7 @@ import processing
 
 class _kriging(QgsProcessingAlgorithm):
 
+    # Initalize input parameters
     def initAlgorithm(self, config=None):
         #self.addParameter(QgsProcessingParameterVectorLayer('sites', 'LEC', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
         self.addParameter(QgsProcessingParameterVectorLayer('sites', 'LEC', types=[QgsProcessing.TypeVectorPoint], defaultValue="LEC"))
@@ -34,7 +36,7 @@ class _kriging(QgsProcessingAlgorithm):
         results = {}
         outputs = {}
 
-        # Ordinary kriging
+        # Step 7: Ordinary kriging
         alg_params = {
             'BLOCK': parameters['BlockKriging'],
             'DBLOCK': parameters['blocksize'],
