@@ -7,19 +7,35 @@ from qgis.core import QgsProcessingParameterFileDestination
 from qgis.core import QgsProcessingParameterFeatureSink
 import processing
 
+# Moduls for make_new_datetime_dir(self)
+from qgis.utils import iface
+from datetime import datetime
+import os
+
 # Initalize Input Parameters
 class _preprocessing(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
+        
+        # Get path of active layer and create new date/timestamp path
+        self.get_new_datetime_dir()
+        
         self.addParameter(QgsProcessingParameterVectorLayer('sites', 'Sites', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
-        self.addParameter(QgsProcessingParameterFileDestination('Lec_statistics', 'LEC_Statistics', optional=True, fileFilter='HTML files (*.html)', createByDefault=True, defaultValue=None))
-        self.addParameter(QgsProcessingParameterFeatureSink('BoundingGeometry', 'Bounding Geometry', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=None))
-        self.addParameter(QgsProcessingParameterFeatureSink('Lec', 'LEC', type=QgsProcessing.TypeVectorPoint, createByDefault=True, defaultValue=None))
-        self.addParameter(QgsProcessingParameterFeatureSink('Vertices_cleaned', 'Vertices_cleaned', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=None))
-        self.addParameter(QgsProcessingParameterFeatureSink('Sites_cleaned', 'Sites_cleaned', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=None))
-        self.addParameter(QgsProcessingParameterFeatureSink('Voronoi', 'Voronoi', type=QgsProcessing.TypeVectorPolygon, createByDefault=True, defaultValue=None))
-
+        self.addParameter(QgsProcessingParameterFileDestination('Lec_statistics', 'LEC_Statistics', optional=True, fileFilter='HTML files (*.html)', createByDefault=True, defaultValue=self.newfolder+"/"+"LEC_Statistics.html"))
+        self.addParameter(QgsProcessingParameterFeatureSink('BoundingGeometry', 'Bounding Geometry', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=self.newfolder+"/"+"Bounding Geometry.shp"))
+        self.addParameter(QgsProcessingParameterFeatureSink('Lec', 'LEC', type=QgsProcessing.TypeVectorPoint, createByDefault=True, defaultValue=self.newfolder+"/"+"LEC.shp"))
+        self.addParameter(QgsProcessingParameterFeatureSink('Vertices_cleaned', 'Vertices_cleaned', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=self.newfolder+"/"+"Vertices_cleaned.shp"))
+        self.addParameter(QgsProcessingParameterFeatureSink('Sites_cleaned', 'Sites_cleaned', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=self.newfolder+"/"+"Sites_cleaned.shp"))
+        self.addParameter(QgsProcessingParameterFeatureSink('Voronoi', 'Voronoi', type=QgsProcessing.TypeVectorPolygon, createByDefault=True, defaultValue=self.newfolder+"/"+"Voronoi.shp"))
+        
+        
+         
+         
     def processAlgorithm(self, parameters, context, model_feedback):
+        
+        # make date/timestamp directory
+        self.make_new_datetime_dir()
+        
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
         feedback = QgsProcessingMultiStepFeedback(13, model_feedback)
@@ -53,7 +69,7 @@ class _preprocessing(QgsProcessingAlgorithm):
         # Add row_number (ID)
         alg_params = {
             'FIELD_LENGTH': 10,
-            'FIELD_NAME': 'Vertices_ID',
+            'FIELD_NAME': 'Sites_ID',
             'FIELD_PRECISION': 3,
             'FIELD_TYPE': 1,
             'FORMULA': ' @row_number ',
@@ -173,7 +189,7 @@ class _preprocessing(QgsProcessingAlgorithm):
 
         # Step 5: Defining the radius of the „Largest Empty Circle“
         alg_params = {
-            'FIELD': 'Vertices_ID',
+            'FIELD': 'Sites_ID',
             'HUBS': outputs['AddSites_cleanId']['OUTPUT'],
             'INPUT': outputs['AddVerticesId']['OUTPUT'],
             'UNIT': 0,
@@ -223,3 +239,13 @@ class _preprocessing(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return _preprocessing()
+    
+    def get_new_datetime_dir(self):
+        p = os.path.dirname(iface.activeLayer().source())
+        now = datetime.now()
+        dt_string = now.strftime("%Y-%m-%d__%H_%M")
+        self.newfolder = os.path.join(p,dt_string)
+    
+    def make_new_datetime_dir(self):
+        if not os.path.isdir(self.newfolder):
+            os.makedirs(self.newfolder)
