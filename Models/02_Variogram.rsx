@@ -5,9 +5,9 @@
 ##Cologne-Protocol=group
 ##showplots
 ##Layer=vector LEC
-##Feld=Field Layer HubDist
-##model=selection Exp;Sph;Gau;Mat 1
-##LagDist = number
+##Field=Field Layer HubDist
+##model=selection Exp;Sph 0
+##LagDist = number (Bounding Geometry[[LagDist]])
 ##Plot.Show.First.X.Percent = number 50
 ##Use_ggplot2_for_Plotting=boolean True
 ## out.range = output number
@@ -22,7 +22,7 @@ library(gstat)
 
 
 # Build Sample variogram
-lzn.vgm <- gstat::variogram((Layer[[Feld]])~1, Layer,width=LagDist)
+lzn.vgm <- gstat::variogram((Layer[[Field]])~1, Layer,width=LagDist)
 
 
 # Identify first plateau for fitting theoretical variogram 
@@ -33,7 +33,7 @@ sill.plateau <- lzn.vgm$gamma[lzn.vgm$dist == range.plateau]
 
 
 # Fitting theoretical variogram
-Models<-c("Exp","Sph","Gau","Mat")
+Models<-c("Exp","Sph")
 model2<-Models[model+1] 
 lzn.fit <- fit.variogram(lzn.vgm, model=vgm(sill.plateau,model2, range.plateau, nugget=0), fit.sills = FALSE, fit.ranges = FALSE)
 
@@ -49,6 +49,9 @@ exp <- paste(out.nugget, "+",out.psill,"*x+",out.range,"*x*x",sep="")
 pwr <- paste(out.nugget, "+",out.psill,"*x^",out.range,sep="")
 sph <- paste(out.nugget, "+", out.psill, "* ifelse(x >",out.range,", 1, 1.5 * x / ",out.range," - 0.5 * x*x*x / ",out.range,"*",out.range,"*",out.range,sep="")
 
+out.formula <- ""
+if (lzn.fit$model[2]=="Sph"){out.formula <- sph}
+if (lzn.fit$model[2]=="Exp"){out.formula <- exp}
 
 # Plot Sample Variogramm and fitted Model using basic plotting:
 xlim.value = ((max(lzn.vgm$dist)/100)*Plot.Show.First.X.Percent)
@@ -73,7 +76,7 @@ grid.arrange(p1,p2,nrow=2)
 }
 
 # Export results as table
-Variogram_Results <- data.frame("Model" = lzn.fit$model[2], "Nugget" = out.nugget, "Range" = round(out.range,0), "Psill" = round(out.psill,0), "exp" = exp, "pwr" = pwr, "sph" = sph)
+Variogram_Results <- data.frame("Model" = lzn.fit$model[2], "Nugget" = out.nugget, "Range" = round(out.range,0), "Psill" = round(out.psill,0), "Choosen_Model" = out.formula, "exp" = exp, "pwr" = pwr, "sph" = sph)
 
 
 # Print Results
