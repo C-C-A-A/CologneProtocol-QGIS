@@ -15,19 +15,18 @@ class _kriging(QgsProcessingAlgorithm):
 
     # Initalize input parameters
     def initAlgorithm(self, config=None):
-        #self.addParameter(QgsProcessingParameterVectorLayer('sites', 'LEC', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('sites', 'LEC', types=[QgsProcessing.TypeVectorPoint], defaultValue="LEC"))
-        self.addParameter(QgsProcessingParameterField('hubdistlecradii', 'HubDist_LEC_Radii', type=QgsProcessingParameterField.Numeric, parentLayerParameterName='sites', allowMultiple=False, defaultValue='HubDist'))
-        self.addParameter(QgsProcessingParameterNumber('gridcellsize', 'Grid_Cellsize', type=QgsProcessingParameterNumber.Integer, defaultValue=1000))
-        self.addParameter(QgsProcessingParameterExpression('formel', 'Formel', parentLayerParameterName='', defaultValue=''))
-        self.addParameter(QgsProcessingParameterNumber('lagdist', 'LagDist', type=QgsProcessingParameterNumber.Integer, defaultValue=0))
         self.addParameter(QgsProcessingParameterBoolean('BlockKriging', 'Block_Kriging', defaultValue=True))
         self.addParameter(QgsProcessingParameterNumber('blocksize', 'Block_Size', type=QgsProcessingParameterNumber.Integer, defaultValue=100))
-        self.addParameter(QgsProcessingParameterNumber('maxsearchdist', 'MaxSearchDist', type=QgsProcessingParameterNumber.Integer, defaultValue=''))
-        self.addParameter(QgsProcessingParameterNumber('numberofptsmin', 'Number_of_Pts_Min', type=QgsProcessingParameterNumber.Integer, defaultValue=3))
+        self.addParameter(QgsProcessingParameterExpression('formel', 'Formel', parentLayerParameterName='', defaultValue=''))
+        self.addParameter(QgsProcessingParameterNumber('gridcellsize', 'Grid_Cellsize', type=QgsProcessingParameterNumber.Integer, defaultValue=1000))
+        self.addParameter(QgsProcessingParameterField('hubdistlecradii', 'HubDist_LEC_Radii', type=QgsProcessingParameterField.Numeric, parentLayerParameterName='sites', allowMultiple=False, defaultValue='HubDist'))
+        self.addParameter(QgsProcessingParameterNumber('lagdist', 'LagDist', type=QgsProcessingParameterNumber.Double, defaultValue=0))
+        self.addParameter(QgsProcessingParameterNumber('maxsearchdist', 'Max_Search_Dist', type=QgsProcessingParameterNumber.Integer, defaultValue=""))
         self.addParameter(QgsProcessingParameterNumber('numberofptsmax', 'Number_of_Pts_Max', type=QgsProcessingParameterNumber.Integer, defaultValue=10))
-        self.addParameter(QgsProcessingParameterRasterDestination('Kriging_raster', 'Kriging_Raster', createByDefault=True, defaultValue=None))
-        self.addParameter(QgsProcessingParameterRasterDestination('Quality_measure', 'Quality_Measure', optional=True, createByDefault=True, defaultValue=None))
+        self.addParameter(QgsProcessingParameterNumber('numberofptsmin', 'Number_of_Pts_Min', type=QgsProcessingParameterNumber.Integer, defaultValue=3))
+        self.addParameter(QgsProcessingParameterVectorLayer('sites', 'a_LEC', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
+        self.addParameter(QgsProcessingParameterRasterDestination('Kriging_raster', 'Kriging_Raster', createByDefault=True, defaultValue="Kriging.sdat"))
+        self.addParameter(QgsProcessingParameterRasterDestination('Quality_measure', 'Quality_Measure', optional=True, createByDefault=False, defaultValue="Variance.sdat"))
 
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
