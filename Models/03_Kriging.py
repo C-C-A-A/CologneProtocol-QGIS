@@ -20,7 +20,7 @@ class _kriging(QgsProcessingAlgorithm):
         # Call function to look for precalculated values in layer "Bounding Geometry"
         self.look_for_precalculated_values()
         
-        self.addParameter(QgsProcessingParameterVectorLayer('sites', 'a_LEC', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('sites', 'LEC', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
         self.addParameter(QgsProcessingParameterField('hubdistlecradii', 'HubDist_LEC_Radii', type=QgsProcessingParameterField.Numeric, parentLayerParameterName='sites', allowMultiple=False, defaultValue='HubDist'))
         self.addParameter(QgsProcessingParameterNumber('gridcellsize', 'Grid_Cellsize', type=QgsProcessingParameterNumber.Integer, defaultValue=1000))
         self.addParameter(QgsProcessingParameterExpression('formel', 'Formel', parentLayerParameterName='', defaultValue=self.formula_default))
@@ -89,10 +89,11 @@ class _kriging(QgsProcessingAlgorithm):
             layer = QgsProject.instance().mapLayersByName("Bounding Geometry")[0]
             self.max_search_dist_default = round(layer.getFeature(0).attributes()[3],2)
             self.lag_dist_default = round(layer.getFeature(0).attributes()[4],2)
-            
-            layer = QgsProject.instance().mapLayersByName("Variogram Results")[0]
-            self.formula_default = layer.getFeature(1).attributes()[6]
         except:
             self.max_search_dist_default = ""
             self.lag_dist_default = ""
+        try:
+            layer = QgsProject.instance().mapLayersByName("Variogram Results")[0]
+            self.formula_default = layer.getFeature(1).attributes()[6]
+        except:
             self.formula_default = ""
