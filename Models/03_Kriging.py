@@ -9,20 +9,25 @@ from qgis.core import QgsProcessingParameterField
 from qgis.core import QgsProcessingParameterVectorLayer
 from qgis.core import QgsProcessingParameterRasterDestination
 import processing
+# for Function look_for_precalculated_values()
+from qgis.core import QgsProject
 
 
 class _kriging(QgsProcessingAlgorithm):
 
     # Initalize input parameters
     def initAlgorithm(self, config=None):
+        # Call function to look for precalculated values in layer "Bounding Geometry"
+        self.look_for_precalculated_values()
+        
         self.addParameter(QgsProcessingParameterVectorLayer('sites', 'a_LEC', types=[QgsProcessing.TypeVectorPoint], defaultValue=None))
         self.addParameter(QgsProcessingParameterField('hubdistlecradii', 'HubDist_LEC_Radii', type=QgsProcessingParameterField.Numeric, parentLayerParameterName='sites', allowMultiple=False, defaultValue='HubDist'))
         self.addParameter(QgsProcessingParameterNumber('gridcellsize', 'Grid_Cellsize', type=QgsProcessingParameterNumber.Integer, defaultValue=1000))
-        self.addParameter(QgsProcessingParameterExpression('formel', 'Formel', parentLayerParameterName='', defaultValue=''))
-        self.addParameter(QgsProcessingParameterNumber('lagdist', 'LagDist', type=QgsProcessingParameterNumber.Double, defaultValue=0))
+        self.addParameter(QgsProcessingParameterExpression('formel', 'Formel', parentLayerParameterName='', defaultValue=self.formula_default))
+        self.addParameter(QgsProcessingParameterNumber('lagdist', 'LagDist', type=QgsProcessingParameterNumber.Double, defaultValue=self.lag_dist_default))
         self.addParameter(QgsProcessingParameterBoolean('BlockKriging', 'Block_Kriging', defaultValue=True))
         self.addParameter(QgsProcessingParameterNumber('blocksize', 'Block_Size', type=QgsProcessingParameterNumber.Integer, defaultValue=100))
-        self.addParameter(QgsProcessingParameterNumber('maxsearchdist', 'Max_Search_Dist', type=QgsProcessingParameterNumber.Integer, defaultValue=""))
+        self.addParameter(QgsProcessingParameterNumber('maxsearchdist', 'Max_Search_Dist', type=QgsProcessingParameterNumber.Integer, defaultValue=self.max_search_dist_default))
         self.addParameter(QgsProcessingParameterNumber('numberofptsmin', 'Number_of_Pts_Min', type=QgsProcessingParameterNumber.Integer, defaultValue=3))
         self.addParameter(QgsProcessingParameterNumber('numberofptsmax', 'Number_of_Pts_Max', type=QgsProcessingParameterNumber.Integer, defaultValue=10))
         self.addParameter(QgsProcessingParameterRasterDestination('Kriging_raster', 'Kriging_Raster', createByDefault=True, defaultValue="Kriging.sdat"))
@@ -78,3 +83,16 @@ class _kriging(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return _kriging()
+
+    def look_for_precalculated_values(self):
+        try:
+            layer = QgsProject.instance().mapLayersByName("Bounding Geometry")[0]
+            self.max_search_dist_default = round(layer.getFeature(0).attributes()[3],2)
+            self.lag_dist_default = round(layer.getFeature(0).attributes()[4],2)
+            
+            layer = QgsProject.instance().mapLayersByName("Variogram Results")[0]
+            self.formula_default = layer.getFeature(1).attributes()[6]
+        except:
+            self.max_search_dist_default = ""
+            self.lag_dist_default = ""
+            self.formula_default = ""
