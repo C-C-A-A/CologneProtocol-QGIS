@@ -1,4 +1,3 @@
-# Git test
 # Import Models
 from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
