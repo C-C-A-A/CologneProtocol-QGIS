@@ -46,7 +46,7 @@ out.psill <- round(lzn.fit$psill[2])
 
 # Defining outputs: formulas/models
 exp <- paste(out.nugget, "+",out.psill,"*x+",out.range,"*x*x",sep="")
-pwr <- paste(out.nugget, "+",out.psill,"*x^",out.range,sep="")
+pwr <- paste(out.nugget, "+",out.psill,"*x**",out.range,sep="")
 sph <- paste(out.nugget, "+", out.psill, "* ifelse(x >",out.range,", 1, 1.5 * x / ",out.range," - 0.5 * x*x*x / ",out.range,"*",out.range,"*",out.range,sep="")
 
 out.formula <- ""
