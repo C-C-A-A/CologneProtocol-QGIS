@@ -37,7 +37,7 @@ Step 1-5 of the Cologne Protocol can be performed in QGIS (`Pre-Processing.py`),
 
 ### Other resources
 
-There exist other manuals and recourses to fulfill the first two parts of the **Cologne Protocol**. The above mentioned publications is not only accompanied by an `QGIS` manual but also by manuals for `R`, `MapInfo` and `ArcGIS`. Please see the publication for more information.  
+There are other manuals and recourses to fulfill the first two parts of the **Cologne Protocol**. The above mentioned publication is not only accompanied by an `QGIS` manual but also by manuals for `R`, `MapInfo` and `ArcGIS`. Please see the publication for more information.  
 
 
 ### Licence:
